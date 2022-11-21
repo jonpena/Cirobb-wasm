@@ -1,0 +1,48 @@
+*,
+*::before,
+*::after {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: sans-serif;
+	background-color: #333333;
+}
+
+body {
+	margin-bottom: 2rem;
+}
+
+.title {
+	margin-top: 2rem;
+	text-align: center;
+	color: white;
+}
+
+.emscripten {
+	padding-right: 0;
+	margin-top: 2rem;
+	margin-left: auto;
+	margin-right: auto;
+	display: block;
+}
+
+canvas.emscripten {
+	max-width: 50rem;
+	min-width: 15rem;
+	width: 100%;
+	height: auto;
+	border: 0 none;
+	background-color: black;
+	border: 1px solid gray;
+}
+
+#controls {
+	display: none;
+}
+
+ul {
+	width: max-content;
+	margin-left: auto;
+	margin-right: auto;
+	color: white;
+}
