@@ -1,4 +1,4 @@
-// emcc ./src/main.cpp -o ./build/index.html -s USE_WEBGL2=1 -s USE_GLFW=3 -s WASM=1 -std=c++11 -s LEGACY_GL_EMULATION
+// emcc ./src/main.cpp -o ./dist/index.html -s USE_WEBGL2=1 -s USE_GLFW=3 -s WASM=1 -std=c++11 -s LEGACY_GL_EMULATION
 
 #include <functional>
 #include <vector>
