@@ -18,15 +18,6 @@ Cirobb is a 2D physics engine written in C++ and compiled to WebAssembly, design
 - OpenGL/WebGL rendering
 - Interactive controls for object creation and manipulation
 
-## Demo
-
-The project includes a web demonstration where you can:
-
-- Press 'B' to create boxes
-- Press 'C' to create circles
-- Press 'P' to pause/resume simulation
-- Press 'SPACE' to change position correction type
-
 ## Installation
 
 ### Requirements
