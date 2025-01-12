@@ -1,0 +1,17 @@
+{
+  "name": "cirobb-wasm",
+  "version": "1.0.0",
+  "description": "Cirobb is a 2D physics engine written in C++ and compiled to WebAssembly, designed to simulate rigid bodies with collision detection and resolution.",
+  "main": "index.js",
+  "scripts": {
+    "build": "bash build.sh",
+    "build:dev": "bash build.sh dev",
+    "deploy": "gh-pages -b prod -d build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
+  }
+}
