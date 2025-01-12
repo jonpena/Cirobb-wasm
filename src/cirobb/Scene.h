@@ -16,7 +16,7 @@
 #include <vector>
 #include "Manifold.h"
 
-enum {NONE = 0, BAUMGARTE, NGS};
+enum {NGS = 0, BAUMGARTE, NONE};
 
 struct Scene
 {

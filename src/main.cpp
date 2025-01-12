@@ -1,5 +1,3 @@
-// emcc ./src/main.cpp -o ./dist/index.html -s USE_WEBGL2=1 -s USE_GLFW=3 -s WASM=1 -std=c++11 -s LEGACY_GL_EMULATION
-
 #include <functional>
 #include <vector>
 #ifdef __EMSCRIPTEN__
@@ -21,8 +19,8 @@
 
 #include "Render.cpp"
 
-int width = 800;
-int height = 600;
+int width = 1200;
+int height = 720;
 real zoom = 10;
 real viewScale = 0;
 
@@ -36,6 +34,30 @@ real mouseX = 0, mouseY = 0;
 GLFWwindow* mainWindow = NULL;
 
 Scene scene(gravity, 10, 5);
+
+bool touching = false;
+Vec2 touchPos;
+
+bool canCreateBody = true;
+double lastTouchTime = 0.0;
+const double TOUCH_COOLDOWN = 0.3; // 300ms cooldown
+
+Vec2 lastTouchPos;
+bool isTouchDevice = false;
+
+extern "C" {
+  bool setPause(bool value) {
+    pause = value;
+    return pause;
+  }
+}
+
+extern "C" {
+  int setCorrectionType(int value) {
+    Scene::CorrectionType = value;
+    return Scene::CorrectionType;
+  }
+}
 
 static void Reshape(GLFWwindow*, int w, int h)
 {
@@ -64,7 +86,7 @@ static void Reshape(GLFWwindow*, int w, int h)
 
 static void Start(void)
 {
-  Scene::CorrectionType = 2;
+  Scene::CorrectionType = 0;
 
   scene.Clear();
       
@@ -83,38 +105,20 @@ static void Start(void)
 }
 
 
-static void Keyboard(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	if(action != GLFW_PRESS) return;
+// static void Keyboard(GLFWwindow* window, int key, int scancode, int action, int mods)
+// {
+// 	if(action != GLFW_PRESS) return;
 
-	switch(key)
-	{
-		case GLFW_KEY_B:
-    {
-      OBB temp(Vec2(1.5f, 1.5f));
-			RigidBody* b = new RigidBody(temp, Vec2(mouseX, mouseY), 0.0f);
-      b->Dynamic(1.0f);
-      scene.Add(b);
-    }
-    break;
-    
-		case GLFW_KEY_C:
-		{
-			Circle temp(0.8f);
-			RigidBody* b = new RigidBody(temp, Vec2(mouseX, mouseY), 0.0f);
-		  b->Dynamic(1.0f);
-			scene.Add(b);
-		}
-    break;
+// 	switch(key)
+// 	{
+// 		case GLFW_KEY_P:
+//     pause = !pause;
+// 		break;
 
-		case GLFW_KEY_P:
-    pause = !pause;
-		break;
-
-		case GLFW_KEY_SPACE: Scene::CorrectionType = Scene::CorrectionType > 1 ? 0 : Scene::CorrectionType + 1; 
-		break;
-	}
-}
+// 		case GLFW_KEY_C: Scene::CorrectionType = Scene::CorrectionType > 1 ? 0 : Scene::CorrectionType + 1; 
+// 		break;
+// 	}
+// }
 
 
 static void MouseMotion(GLFWwindow*, double x, double y)
@@ -129,6 +133,51 @@ static void error_callback(int error, const char* description)
   fprintf(stderr, "Error: %s\n", description);
 }
 
+
+static void MouseButton(GLFWwindow* window, int button, int action, int mods)
+{
+    double currentTime = glfwGetTime();
+    
+    if ((button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_RIGHT) && 
+        action == GLFW_PRESS && canCreateBody) {
+        
+        if (currentTime - lastTouchTime < TOUCH_COOLDOWN) {
+            return;
+        }
+        
+        double x, y;
+        glfwGetCursorPos(window, &x, &y);
+        
+        mouseX = ((real)x - width  * 0.5) *  viewScale;
+        mouseY = ((real)y - height * 0.5) * -viewScale;
+        
+        canCreateBody = false;
+        lastTouchTime = currentTime;
+        
+        real worldX = mouseX;
+        real worldY = mouseY;
+        
+        RigidBody* b;
+        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+            // Create rectangle
+            OBB temp(Vec2(1.5f, 1.5f));
+            b = new RigidBody(temp, Vec2(worldX, worldY), 0.0f);
+        } else {
+            // Create circle
+            Circle temp(0.75f);
+            b = new RigidBody(temp, Vec2(worldX, worldY), 0.0f);
+        }
+        
+        b->Dynamic(1.0f);
+        scene.Add(b);
+        
+        touching = true;
+        touchPos = Vec2(worldX, worldY);
+    } else if (action == GLFW_RELEASE) {
+        touching = false;
+        canCreateBody = true;
+    }
+}
 
 std::function<void()> Update;
 
@@ -155,13 +204,15 @@ int main(int args, char** argv)
   }
 
   glfwSetWindowSizeCallback(mainWindow, Reshape);
-  glfwSetKeyCallback(mainWindow, Keyboard);
+  // glfwSetKeyCallback(mainWindow, Keyboard);
 	glfwSetCursorPosCallback(mainWindow, MouseMotion);
+  glfwSetMouseButtonCallback(mainWindow, MouseButton);
   glfwMakeContextCurrent(mainWindow);
 
   Reshape(mainWindow, width, height);
 
   Start();
+
 
   Update = [&] 
   {    
@@ -171,8 +222,6 @@ int main(int args, char** argv)
     
 		if(!pause) scene.Step(timeStep);
 		for(RigidBody* temp : scene.bodies) DrawShape(temp->shape);
-
-    // printf("RigidBodies: %i \n", (int)scene.bodies.size());
 
     glfwSwapBuffers(mainWindow);
     glfwPollEvents();
