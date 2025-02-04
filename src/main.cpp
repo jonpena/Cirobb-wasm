@@ -39,7 +39,7 @@ Scene scene(gravity, 10, 5);
 bool touching = false;
 bool canCreateBody = true;
 double lastTouchTime = 0.0;
-const double TOUCH_COOLDOWN = 0.3; // 300ms cooldown
+const double TOUCH_COOLDOWN = 0.2; // 300ms cooldown
 
 
 extern "C" {

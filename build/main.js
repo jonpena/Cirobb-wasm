@@ -12,7 +12,10 @@ var Module = {
     });
 
     document.getElementById("canvas").addEventListener("click", function (e) {
-      Module._setTouchDevice(true);
+      if (!("ontouchstart" in window || navigator.maxTouchPoints > 0)) {
+        // Solo ejecuta este funcion si no es un dispositivo táctil
+        Module._setTouchDevice(true);
+      }
     });
   },
 };
