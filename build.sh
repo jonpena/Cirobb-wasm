@@ -6,7 +6,7 @@ EMCC_FLAGS="-s USE_WEBGL2=1 \
     -s WASM=1 \
     -std=c++11 \
     -s LEGACY_GL_EMULATION \
-    -s EXPORTED_FUNCTIONS='[\"_main\", \"_setPause\", \"_setCorrectionType\"]' \
+    -s EXPORTED_FUNCTIONS='[\"_main\", \"_setPause\", \"_setCorrectionType\", \"_setTouchDevice\"]' \
     -s EXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'"
 
 # Add optimization flag for production

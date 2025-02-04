@@ -10,5 +10,9 @@ var Module = {
     document.getElementById("options").addEventListener("change", function () {
       Module._setCorrectionType(this.value);
     });
+
+    document.getElementById("canvas").addEventListener("click", function (e) {
+      Module._setTouchDevice(true);
+    });
   },
 };

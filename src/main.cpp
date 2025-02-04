@@ -35,15 +35,12 @@ GLFWwindow* mainWindow = NULL;
 
 Scene scene(gravity, 10, 5);
 
-bool touching = false;
-Vec2 touchPos;
 
+bool touching = false;
 bool canCreateBody = true;
 double lastTouchTime = 0.0;
 const double TOUCH_COOLDOWN = 0.3; // 300ms cooldown
 
-Vec2 lastTouchPos;
-bool isTouchDevice = false;
 
 extern "C" {
   bool setPause(bool value) {
@@ -56,6 +53,13 @@ extern "C" {
   int setCorrectionType(int value) {
     Scene::CorrectionType = value;
     return Scene::CorrectionType;
+  }
+}
+
+extern "C" {
+  bool setTouchDevice(bool value) {
+    canCreateBody = value;
+    return canCreateBody;
   }
 }
 
@@ -105,32 +109,10 @@ static void Start(void)
 }
 
 
-// static void Keyboard(GLFWwindow* window, int key, int scancode, int action, int mods)
-// {
-// 	if(action != GLFW_PRESS) return;
-
-// 	switch(key)
-// 	{
-// 		case GLFW_KEY_P:
-//     pause = !pause;
-// 		break;
-
-// 		case GLFW_KEY_C: Scene::CorrectionType = Scene::CorrectionType > 1 ? 0 : Scene::CorrectionType + 1; 
-// 		break;
-// 	}
-// }
-
-
 static void MouseMotion(GLFWwindow*, double x, double y)
 {
 	mouseX = ((real)x - width  * 0.5) *  viewScale;
 	mouseY = ((real)y - height * 0.5) * -viewScale;
-}
-
-
-static void error_callback(int error, const char* description)
-{
-  fprintf(stderr, "Error: %s\n", description);
 }
 
 
@@ -139,11 +121,12 @@ static void MouseButton(GLFWwindow* window, int button, int action, int mods)
     double currentTime = glfwGetTime();
     
     if ((button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_RIGHT) && 
-        action == GLFW_PRESS && canCreateBody) {
+        action == GLFW_PRESS) {
         
         if (currentTime - lastTouchTime < TOUCH_COOLDOWN) {
-            return;
-        }
+            canCreateBody = true;
+            return; 
+        } 
         
         double x, y;
         glfwGetCursorPos(window, &x, &y);
@@ -151,33 +134,37 @@ static void MouseButton(GLFWwindow* window, int button, int action, int mods)
         mouseX = ((real)x - width  * 0.5) *  viewScale;
         mouseY = ((real)y - height * 0.5) * -viewScale;
         
-        canCreateBody = false;
         lastTouchTime = currentTime;
         
-        real worldX = mouseX;
-        real worldY = mouseY;
+        // touching = true;
+        // canCreateBody = true;
         
+    } else if (action == GLFW_RELEASE && canCreateBody) {
+        // touching = false;
+        canCreateBody = false;
+
         RigidBody* b;
         if (button == GLFW_MOUSE_BUTTON_LEFT) {
             // Create rectangle
             OBB temp(Vec2(1.5f, 1.5f));
-            b = new RigidBody(temp, Vec2(worldX, worldY), 0.0f);
+            b = new RigidBody(temp, Vec2(mouseX, mouseY), 0.0f);
         } else {
             // Create circle
             Circle temp(0.75f);
-            b = new RigidBody(temp, Vec2(worldX, worldY), 0.0f);
+            b = new RigidBody(temp, Vec2(mouseX, mouseY), 0.0f);
         }
         
         b->Dynamic(1.0f);
         scene.Add(b);
-        
-        touching = true;
-        touchPos = Vec2(worldX, worldY);
-    } else if (action == GLFW_RELEASE) {
-        touching = false;
-        canCreateBody = true;
     }
 }
+
+
+static void error_callback(int error, const char* description)
+{
+  fprintf(stderr, "Error: %s\n", description);
+}
+
 
 std::function<void()> Update;
 
@@ -204,7 +191,6 @@ int main(int args, char** argv)
   }
 
   glfwSetWindowSizeCallback(mainWindow, Reshape);
-  // glfwSetKeyCallback(mainWindow, Keyboard);
 	glfwSetCursorPosCallback(mainWindow, MouseMotion);
   glfwSetMouseButtonCallback(mainWindow, MouseButton);
   glfwMakeContextCurrent(mainWindow);
